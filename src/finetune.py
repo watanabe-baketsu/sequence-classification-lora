@@ -79,7 +79,7 @@ if __name__ == "__main__":
         "training": training_dataset,
         "validation": validation_dataset,
     })
-    tokenized_dataset = htmls.map(preprocess_function, batched=True, remove_columns=["label"])
+    tokenized_dataset = htmls.map(preprocess_function, batched=True)
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
