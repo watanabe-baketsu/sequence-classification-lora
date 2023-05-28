@@ -1,0 +1,5 @@
+peft
+transformers
+datasets
+evaluate
+seqeval
