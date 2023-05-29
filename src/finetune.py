@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
     # Load dataset
     htmls = read_dataset(args.dataset_path)
-    training_dataset = htmls["training"].shuffle(seed=42).select(range(1000))
-    validation_dataset = htmls["validation"].shuffle().select(range(300))
+    training_dataset = htmls["training"].shuffle(seed=42).select(range(3000))
+    validation_dataset = htmls["validation"].shuffle().select(range(500))
     print(f"Training dataset count: {len(training_dataset)}")
     print(f"Validation dataset count: {len(validation_dataset)}")
     htmls = DatasetDict({
