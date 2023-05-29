@@ -53,4 +53,4 @@ if __name__ == "__main__":
             logits = model(**inputs).logits
 
         predicted_class_id = logits.argmax().item()
-        print(f"Predicted class: {id2label[predicted_class_id]} / Actual class: {data['label']}")
+        print(f"Predicted class: {id2label[predicted_class_id]} / Actual class: {id2label[data['label']]}")
