@@ -52,10 +52,10 @@ def compute_metrics(p) -> Dict[str, float]:
     f1 = evaluate.load("f1")
 
     return {
-        "precision": precision.compute(predictions=predictions, references=labels),
-        "recall": recall.compute(predictions=predictions, references=labels),
-        "f1": f1.compute(predictions=predictions, references=labels),
-        "accuracy": accuracy.compute(predictions=predictions, references=labels)
+        "precision": precision.compute(predictions=predictions, references=labels)["precision"],
+        "recall": recall.compute(predictions=predictions, references=labels)["recall"],
+        "f1": f1.compute(predictions=predictions, references=labels)["f1"],
+        "accuracy": accuracy.compute(predictions=predictions, references=labels)["accuracy"]
     }
 
 
