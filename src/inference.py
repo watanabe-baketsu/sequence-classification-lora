@@ -46,7 +46,7 @@ if __name__ == "__main__":
     model = PeftModel.from_pretrained(inference_model, args.model_name)
 
     validation_dataset = read_validation_dataset(args.validation_dataset)
-    validation_dataset = validation_dataset["validation"].shuffle().select(range(5))
+    validation_dataset = validation_dataset["validation"].shuffle().select(range(10))
 
     for data in validation_dataset:
         inputs = tokenizer(data["text"], padding=True, truncation=True, return_tensors="pt")
