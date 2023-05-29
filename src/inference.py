@@ -38,6 +38,8 @@ if __name__ == "__main__":
         num_labels=2,
         id2label=id2label,
         label2id=label2id,
+        local_files_only=True,
+        ignore_mismatched_sizes=True
     )
 
     tokenizer = AutoTokenizer.from_pretrained(config.base_model_name_or_path)
