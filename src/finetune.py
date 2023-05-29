@@ -71,15 +71,15 @@ if __name__ == "__main__":
 
     # Load dataset
     htmls = read_dataset(args.dataset_path)
-    training_dataset = htmls["training"].shuffle(seed=42).select(range(30))
-    validation_dataset = htmls["validation"].shuffle().select(range(10))
+    training_dataset = htmls["training"].shuffle(seed=42).select(range(1000))
+    validation_dataset = htmls["validation"].shuffle().select(range(300))
     print(f"Training dataset count: {len(training_dataset)}")
     print(f"Validation dataset count: {len(validation_dataset)}")
     htmls = DatasetDict({
         "training": training_dataset,
         "validation": validation_dataset,
     })
-    tokenized_dataset = htmls.map(preprocess_function, batched=True)
+    tokenized_dataset = htmls.map(preprocess_function, batched=True, remove_columns=["text"])
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
