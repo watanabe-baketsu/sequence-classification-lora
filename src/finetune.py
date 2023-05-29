@@ -133,3 +133,6 @@ if __name__ == "__main__":
     )
 
     trainer.train()
+
+    save_directory = f"../tuned_models/{args.model_name.split('/')[-1]}"
+    trainer.model.save_pretrained(save_directory=save_directory)
