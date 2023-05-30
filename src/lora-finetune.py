@@ -10,7 +10,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-from peft import get_peft_config, PeftModel, PeftConfig, get_peft_model, LoraConfig, TaskType
+from peft import get_peft_model, LoraConfig, TaskType
 import evaluate
 import torch
 import numpy as np
@@ -64,6 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default="microsoft/deberta-base-mnli",
                         help="Name of the model to be used for training")
     parser.add_argument("--dataset_path", type=str, default="../dataset/dataset_full.json", help="Training dataset")
+    parser.add_argument("--target_modules", nargs='+', default="in_proj")
 
     args = parser.parse_args()
 
@@ -103,7 +104,7 @@ if __name__ == "__main__":
         lora_alpha=16,
         lora_dropout=0.1,
         bias="all",
-        target_modules=["in_proj"],
+        target_modules=args.target_modules,
     )
 
     model = get_peft_model(model, peft_config)
