@@ -38,7 +38,7 @@ if __name__ == "__main__":
         num_labels=2,
         id2label=id2label,
         label2id=label2id,
-        local_files_only=True,
+        local_files_only=False,
         ignore_mismatched_sizes=True
     )
 
