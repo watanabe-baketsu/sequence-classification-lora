@@ -32,7 +32,7 @@ def read_dataset(file_path: str) -> DatasetDict:
     return dataset
 
 
-def preprocess_function(data: DatasetDict) -> DatasetDict:
+def tokenize(data: DatasetDict) -> DatasetDict:
     """
     :param data:
     :return:
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         "training": training_dataset,
         "validation": validation_dataset,
     })
-    tokenized_dataset = htmls.map(preprocess_function, batched=True, remove_columns=["text"])
+    tokenized_dataset = htmls.map(tokenize, batched=True, remove_columns=["text"])
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
