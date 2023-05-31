@@ -2,3 +2,5 @@ peft
 transformers
 datasets
 evaluate
+umap-learn
+matplotlib
