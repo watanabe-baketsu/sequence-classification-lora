@@ -59,6 +59,17 @@ def compute_metrics(p) -> Dict[str, float]:
     }
 
 
+def create_report(dataset: DatasetDict, trainer: Trainer):
+    from sklearn.metrics import classification_report
+
+    # Get the predictions
+    preds_output = trainer.predict(dataset["validation"])
+    predictions = np.argmax(preds_output.predictions, axis=1)
+
+    print(">> Classification Report <<")
+    print(classification_report(dataset["validation"]["label"], predictions))
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--model_name", type=str, default="microsoft/deberta-base-mnli",
@@ -140,3 +151,6 @@ if __name__ == "__main__":
     else:
         save_directory = f"../tuned_models/{args.model_name}"
     trainer.model.save_pretrained(save_directory=save_directory)
+
+    # create classification report
+    create_report(tokenized_dataset, trainer)

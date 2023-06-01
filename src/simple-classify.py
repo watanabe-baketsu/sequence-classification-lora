@@ -6,9 +6,45 @@ import pandas as pd
 import torch
 from datasets import Dataset, DatasetDict
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import classification_report
 from transformers import AutoModel, AutoTokenizer
 from matplotlib import pyplot as plt
 from umap import UMAP
+
+
+class SimpleClassifiers:
+    def __init__(self, dataset: DatasetDict):
+        self.X_train = np.array(dataset["training"]["hidden_state"])
+        self.y_train = np.array(dataset["training"]["label"])
+        self.X_valid = np.array(dataset["validation"]["hidden_state"])
+        self.y_valid = np.array(dataset["validation"]["label"])
+
+    def dummy_classifier(self):  # baseline
+        from sklearn.dummy import DummyClassifier
+
+        clf = DummyClassifier(strategy="most_frequent")
+        clf.fit(self.X_train, self.y_train)
+        y_pred = clf.predict(self.X_valid)
+        print(">> Dummy Classifier Report <<")
+        print(classification_report(self.y_valid, y_pred))
+
+    def logistic_regression(self):
+        from sklearn.linear_model import LogisticRegression
+
+        clf = LogisticRegression(random_state=0, max_iter=3000)
+        clf.fit(self.X_train, self.y_train)
+        y_pred = clf.predict(self.X_valid)
+        print(">> Logistic Regression Report <<")
+        print(classification_report(self.y_valid, y_pred))
+
+    def random_forest(self):
+        from sklearn.ensemble import RandomForestClassifier
+
+        clf = RandomForestClassifier(random_state=0)
+        clf.fit(self.X_train, self.y_train)
+        y_pred = clf.predict(self.X_valid)
+        print(">> Random Forest Classifier Report <<")
+        print(classification_report(self.y_valid, y_pred))
 
 
 def read_dataset(file_path: str) -> DatasetDict:
@@ -61,7 +97,7 @@ def visualize_dataset_features(dataset: DatasetDict):
     df_emb["label"] = y_train
     df_emb.head()
 
-    fig, axes = plt.subplots(2, 1, figsize=(7, 5))
+    fig, axes = plt.subplots(2, 1, figsize=(5, 5))
     axes = axes.flatten()
     cmaps = ["Blues", "Reds"]
     labels = ["not-phish", "phish"]
@@ -89,8 +125,8 @@ if __name__ == "__main__":
 
     # Load dataset
     dataset = read_dataset(args.dataset_path)
-    training_dataset = dataset["training"].shuffle(seed=42).select(range(200))
-    validation_dataset = dataset["validation"].shuffle().select(range(50))
+    training_dataset = dataset["training"].shuffle(seed=42).select(range(6000))
+    validation_dataset = dataset["validation"].shuffle()
     print(f"Training dataset count: {len(training_dataset)}")
     print(f"Validation dataset count: {len(validation_dataset)}")
     dataset = DatasetDict({
@@ -99,13 +135,17 @@ if __name__ == "__main__":
     })
 
     # Tokenize the texts
-    dataset = dataset.map(tokenize, batched=True, batch_size=None)
+    dataset = dataset.map(tokenize, batched=True, batch_size=1000)
     # Convert some columns to torch tensors
     dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
     # Extract hidden states
-    dataset = dataset.map(extract_hidden_states, batched=True)
+    dataset = dataset.map(extract_hidden_states, batched=True, batch_size=20)
 
     # Visualize the dataset features
     visualize_dataset_features(dataset)
 
-
+    # Train simple classifiers
+    classifiers = SimpleClassifiers(dataset)
+    classifiers.dummy_classifier()
+    classifiers.logistic_regression()
+    classifiers.random_forest()
