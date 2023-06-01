@@ -46,6 +46,23 @@ class SimpleClassifiers:
         print(">> Random Forest Classifier Report <<")
         print(classification_report(self.y_valid, y_pred))
 
+    def support_vector_machine(self):
+        from sklearn.svm import SVC
+
+        clf = SVC(random_state=0)
+        clf.fit(self.X_train, self.y_train)
+        y_pred = clf.predict(self.X_valid)
+        print(">> Support Vector Machine Report <<")
+        print(classification_report(self.y_valid, y_pred))
+
+    def newral_network(self):
+        from sklearn.neural_network import MLPClassifier
+
+        clf = MLPClassifier(random_state=0, max_iter=3000)
+        clf.fit(self.X_train, self.y_train)
+        y_pred = clf.predict(self.X_valid)
+        print(">> Neural Network Report <<")
+        print(classification_report(self.y_valid, y_pred))
 
 def read_dataset(file_path: str) -> DatasetDict:
     """
@@ -125,7 +142,7 @@ if __name__ == "__main__":
 
     # Load dataset
     dataset = read_dataset(args.dataset_path)
-    training_dataset = dataset["training"].shuffle(seed=42).select(range(6000))
+    training_dataset = dataset["training"].shuffle(seed=42)
     validation_dataset = dataset["validation"].shuffle()
     print(f"Training dataset count: {len(training_dataset)}")
     print(f"Validation dataset count: {len(validation_dataset)}")
@@ -135,11 +152,11 @@ if __name__ == "__main__":
     })
 
     # Tokenize the texts
-    dataset = dataset.map(tokenize, batched=True, batch_size=1000)
+    dataset = dataset.map(tokenize, batched=True, batch_size=50)
     # Convert some columns to torch tensors
     dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
     # Extract hidden states
-    dataset = dataset.map(extract_hidden_states, batched=True, batch_size=20)
+    dataset = dataset.map(extract_hidden_states, batched=True, batch_size=50)
 
     # Visualize the dataset features
     visualize_dataset_features(dataset)
@@ -149,3 +166,5 @@ if __name__ == "__main__":
     classifiers.dummy_classifier()
     classifiers.logistic_regression()
     classifiers.random_forest()
+    classifiers.support_vector_machine()
+    classifiers.newral_network()
