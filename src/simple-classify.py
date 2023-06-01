@@ -55,6 +55,15 @@ class SimpleClassifiers:
         print(">> Support Vector Machine Report <<")
         print(classification_report(self.y_valid, y_pred))
 
+    def k_nearest_neighbors(self):
+        from sklearn.neighbors import KNeighborsClassifier
+
+        clf = KNeighborsClassifier()
+        clf.fit(self.X_train, self.y_train)
+        y_pred = clf.predict(self.X_valid)
+        print(">> K Nearest Neighbors Report <<")
+        print(classification_report(self.y_valid, y_pred))
+
     def newral_network(self):
         from sklearn.neural_network import MLPClassifier
 
@@ -156,15 +165,16 @@ if __name__ == "__main__":
     # Convert some columns to torch tensors
     dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
     # Extract hidden states
-    dataset = dataset.map(extract_hidden_states, batched=True, batch_size=50)
+    dataset = dataset.map(extract_hidden_states, batched=True, batch_size=30)
 
     # Visualize the dataset features
     visualize_dataset_features(dataset)
 
-    # Train simple classifiers
+    # Train simple classifiers and evaluate them
     classifiers = SimpleClassifiers(dataset)
     classifiers.dummy_classifier()
     classifiers.logistic_regression()
     classifiers.random_forest()
     classifiers.support_vector_machine()
+    classifiers.k_nearest_neighbors()
     classifiers.newral_network()
