@@ -43,7 +43,16 @@ class SimpleClassifiers:
         clf = RandomForestClassifier(random_state=0)
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
-        print(">> Random Forest Classifier Report <<")
+        print(">> Random Forest Report <<")
+        print(classification_report(self.y_valid, y_pred))
+
+    def xgboost(self):
+        from xgboost import XGBClassifier
+
+        clf = XGBClassifier(random_state=0)
+        clf.fit(self.X_train, self.y_train)
+        y_pred = clf.predict(self.X_valid)
+        print(">> XGBoost Report <<")
         print(classification_report(self.y_valid, y_pred))
 
     def support_vector_machine(self):
@@ -175,6 +184,7 @@ if __name__ == "__main__":
     classifiers.dummy_classifier()
     classifiers.logistic_regression()
     classifiers.random_forest()
+    classifiers.xgboost()
     classifiers.support_vector_machine()
     classifiers.k_nearest_neighbors()
     classifiers.newral_network()

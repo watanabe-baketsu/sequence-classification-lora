@@ -10,8 +10,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from peft import get_peft_model, LoraConfig, TaskType
-import evaluate
 import torch
 import numpy as np
 
@@ -43,19 +43,19 @@ def tokenize(data: DatasetDict) -> DatasetDict:
 
 
 def compute_metrics(p) -> Dict[str, float]:
-    predictions, labels = p
-    predictions = np.argmax(predictions, axis=1)
+    labels = p.label_ids
+    predictions = p.predictions.argmax(-1)
 
-    accuracy = evaluate.load("accuracy")
-    recall = evaluate.load("recall")
-    precision = evaluate.load("precision")
-    f1 = evaluate.load("f1")
+    precision = precision_score(labels, predictions, average='weighted')
+    recall = recall_score(labels, predictions, average='weighted')
+    f1 = f1_score(labels, predictions, average='weighted')
+    accuracy = accuracy_score(labels, predictions)
 
     return {
-        "precision": precision.compute(predictions=predictions, references=labels)["precision"],
-        "recall": recall.compute(predictions=predictions, references=labels)["recall"],
-        "f1": f1.compute(predictions=predictions, references=labels)["f1"],
-        "accuracy": accuracy.compute(predictions=predictions, references=labels)["accuracy"]
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1,
     }
 
 
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default="microsoft/deberta-base-mnli",
                         help="Name of the model to be used for training")
     parser.add_argument("--dataset_path", type=str, default="../dataset/dataset_full.json", help="Training dataset")
-    parser.add_argument("--target_modules", nargs='+', default="in_proj")
+    parser.add_argument("--target_modules", nargs='+', default=["in_proj"])
 
     args = parser.parse_args()
 
