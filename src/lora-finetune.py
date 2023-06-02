@@ -119,7 +119,7 @@ if __name__ == "__main__":
         per_device_eval_batch_size=batch_size,
         num_train_epochs=10,
         evaluation_strategy="steps",
-        eval_steps=1000,
+        eval_steps=3000,
         save_strategy="steps",
         lr_scheduler_type="cosine",
     )
