@@ -10,8 +10,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from peft import get_peft_model, LoraConfig, TaskType
+import evaluate
 import torch
 import numpy as np
 
@@ -43,20 +43,10 @@ def tokenize(data: DatasetDict) -> DatasetDict:
 
 
 def compute_metrics(p) -> Dict[str, float]:
-    labels = p.label_ids
-    predictions = p.predictions.argmax(-1)
+    logits, labels = p
+    predictions = np.argmax(logits, axis=-1)
 
-    precision = precision_score(labels, predictions, average='weighted')
-    recall = recall_score(labels, predictions, average='weighted')
-    f1 = f1_score(labels, predictions, average='weighted')
-    accuracy = accuracy_score(labels, predictions)
-
-    return {
-        'accuracy': accuracy,
-        'precision': precision,
-        'recall': recall,
-        'f1': f1,
-    }
+    return accuracy.compute(predictions=predictions, references=labels)
 
 
 def create_report(dataset: DatasetDict, trainer: Trainer):
@@ -83,7 +73,7 @@ if __name__ == "__main__":
 
     # Load dataset
     htmls = read_dataset(args.dataset_path)
-    training_dataset = htmls["training"].shuffle(seed=42).select(range(6000))
+    training_dataset = htmls["training"].shuffle()
     validation_dataset = htmls["validation"].shuffle()
     print(f"Training dataset count: {len(training_dataset)}")
     print(f"Validation dataset count: {len(validation_dataset)}")
@@ -124,16 +114,17 @@ if __name__ == "__main__":
     batch_size = 4
     training_args = TrainingArguments(
         output_dir=f"../tuned_models/{args.model_name.split('/')[-1]}",  # output directory
-        learning_rate=1e-3,
+        learning_rate=2e-5,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
         num_train_epochs=10,
-        weight_decay=0.01,
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        load_best_model_at_end=True,
+        evaluation_strategy="steps",
+        eval_steps=1000,
+        save_strategy="steps",
+        lr_scheduler_type="cosine",
     )
 
+    accuracy = evaluate.load("accuracy")
     trainer = Trainer(
         model=model,
         args=training_args,
