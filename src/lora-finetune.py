@@ -66,6 +66,8 @@ if __name__ == "__main__":
                         help="Name of the model to be used for training")
     parser.add_argument("--dataset_path", type=str, default="../dataset/dataset_full.json", help="Training dataset")
     parser.add_argument("--target_modules", nargs='+', default=["in_proj"])
+    parser.add_argument("--batch_size", type=int, default=4, help="Batch size for training")
+    parser.add_argument("--lora_r", type=int, default=4)
 
     args = parser.parse_args()
 
@@ -101,7 +103,7 @@ if __name__ == "__main__":
     peft_config = LoraConfig(
         task_type=TaskType.SEQ_CLS,
         inference_mode=False,
-        r=4,  # 8
+        r=args.lora_r,  # 8
         lora_alpha=16,
         lora_dropout=0.1,
         bias="all",
@@ -111,7 +113,7 @@ if __name__ == "__main__":
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()
 
-    batch_size = 4
+    batch_size = args.batch_size  # 4
     training_args = TrainingArguments(
         output_dir=f"../tuned_models/{args.model_name.split('/')[-1]}",  # output directory
         learning_rate=2e-5,
