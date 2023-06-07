@@ -152,6 +152,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default="microsoft/deberta-base-mnli")
     parser.add_argument("--dataset_path", type=str, default="../dataset/dataset_full.json")
     parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu", "mps"])
+    parser.add_argument("--gpu_batch_size", type=int, default=30)
 
     args = parser.parse_args()
 
@@ -174,7 +175,7 @@ if __name__ == "__main__":
     # Convert some columns to torch tensors
     dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
     # Extract hidden states
-    dataset = dataset.map(extract_hidden_states, batched=True, batch_size=30)
+    dataset = dataset.map(extract_hidden_states, batched=True, batch_size=args.gpu_batch_size)
 
     # Visualize the dataset features
     visualize_dataset_features(dataset)
