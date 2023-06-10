@@ -1,7 +1,9 @@
 peft
 transformers
+torchtext
 datasets
 evaluate
 umap-learn
 matplotlib
 xgboost
+spacy

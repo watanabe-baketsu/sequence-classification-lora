@@ -73,7 +73,7 @@ class SimpleClassifiers:
         print(">> K Nearest Neighbors Report <<")
         print(classification_report(self.y_valid, y_pred))
 
-    def newral_network(self):
+    def neural_network(self):
         from sklearn.neural_network import MLPClassifier
 
         clf = MLPClassifier(random_state=0, max_iter=3000)
@@ -104,7 +104,7 @@ def tokenize(data: DatasetDict) -> DatasetDict:
     :return:
     """
     # Tokenize the texts
-    tokenized_inputs = tokenizer(data['text'], padding=True, truncation=True, return_tensors="pt")
+    tokenized_inputs = tokenizer(data['text'], padding="max_length", truncation=True, return_tensors="pt")
     return tokenized_inputs
 
 
@@ -188,4 +188,4 @@ if __name__ == "__main__":
     classifiers.xgboost()
     classifiers.support_vector_machine()
     classifiers.k_nearest_neighbors()
-    classifiers.newral_network()
+    classifiers.neural_network()
