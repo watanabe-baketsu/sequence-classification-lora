@@ -1,4 +1,5 @@
 import json
+import random
 from argparse import ArgumentParser
 
 import torch
@@ -38,9 +39,9 @@ def collate_batch(batch):
     label_list, text_list = [], []
     for (_text, _label) in batch:
         label_list.append(_label)
-        processed_text = torch.tensor(vocab(_text), dtype=torch.int64)
+        processed_text = torch.tensor(vocab(_text), dtype=torch.long)
         text_list.append(processed_text)
-    return torch.tensor(label_list, dtype=torch.int64), pad_sequence(text_list, padding_value=0.0)
+    return torch.tensor(label_list, dtype=torch.long), pad_sequence(text_list, padding_value=0.0)
 
 
 def evaluate(model, data_loader, criterion, mode="epoch"):
@@ -70,26 +71,35 @@ def evaluate(model, data_loader, criterion, mode="epoch"):
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("--dataset_path", type=str, default="../dataset/dataset_full.json")
+    parser.add_argument("--batch_size", type=int, default=2)
+    parser.add_argument("--mode", type=str, default="debugging")
 
     args = parser.parse_args()
 
     with open(args.dataset_path) as f:
         data_dict = json.load(f)
 
-    tokenizer = get_tokenizer('moses')
+    tokenizer = get_tokenizer('basic_english')
     specials = ['<unk>', '<pad>']
 
+    print("Tokenizing data...")
     training_data_tokenized = tokenize_data(data_dict['training'])
     validation_data_tokenized = tokenize_data(data_dict['validation'])
+    print("Done tokenizing data.")
+
+    # For debugging purposes
+    if args.mode == "debugging":
+        training_data_tokenized = random.sample(training_data_tokenized, 1000)
+        validation_data_tokenized = random.sample(validation_data_tokenized, 400)
 
     vocab = build_vocab_from_iterator(yield_tokens(training_data_tokenized), specials=specials)
     vocab.set_default_index(vocab["<unk>"])
 
-    # データローダーを作成します
+    # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_dataloader = DataLoader(training_data_tokenized, batch_size=8, shuffle=True, collate_fn=collate_batch)
-    valid_dataloader = DataLoader(validation_data_tokenized, batch_size=8, shuffle=False, collate_fn=collate_batch)
+    train_dataloader = DataLoader(training_data_tokenized, args.batch_size, shuffle=True, collate_fn=collate_batch)
+    valid_dataloader = DataLoader(validation_data_tokenized, batch_size=1, shuffle=False, collate_fn=collate_batch)
 
     INPUT_DIM = len(vocab)
     EMBEDDING_DIM = 100
@@ -99,19 +109,23 @@ if __name__ == '__main__':
     model = RNN(INPUT_DIM, EMBEDDING_DIM, HIDDEN_DIM, OUTPUT_DIM).to(device)
 
     optimizer = torch.optim.Adam(model.parameters())
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = nn.MSELoss()
 
+    print("Start training...")
+    accumulation_steps = 4
     for epoch in range(100):
         epoch_loss = 0
         model.train()
-
-        for labels, text in train_dataloader:
+        optimizer.zero_grad()
+        for i, (labels, text) in enumerate(train_dataloader):
             text, labels = text.to(device), labels.to(device)
-            optimizer.zero_grad()
             predictions = model(text).squeeze(1)
             loss = criterion(predictions, labels.float())
+            loss = loss / accumulation_steps  # Normalize our loss (if averaged)
             loss.backward()
-            optimizer.step()
+            if (i + 1) % accumulation_steps == 0:  # Wait for several backward steps
+                optimizer.step()
+                optimizer.zero_grad()
             epoch_loss += loss.item()
 
         valid_loss, valid_acc = evaluate(model, valid_dataloader, criterion)

@@ -1,13 +1,10 @@
 import json
-from argparse import ArgumentParser
 
 import numpy as np
 import pandas as pd
-import torch
 from datasets import Dataset, DatasetDict
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report
-from transformers import AutoModel, AutoTokenizer
+from sklearn.preprocessing import MinMaxScaler
 from matplotlib import pyplot as plt
 from umap import UMAP
 
@@ -23,7 +20,7 @@ class SimpleClassifiers:
         from sklearn.dummy import DummyClassifier
 
         clf = DummyClassifier(strategy="most_frequent")
-        clf.fit(self.X_train, self.y_train)
+        clf.fit(self.X_valid, self.y_valid)
         y_pred = clf.predict(self.X_valid)
         print(">> Dummy Classifier Report <<")
         print(classification_report(self.y_valid, y_pred))
@@ -82,41 +79,14 @@ class SimpleClassifiers:
         print(">> Neural Network Report <<")
         print(classification_report(self.y_valid, y_pred))
 
-def read_dataset(file_path: str) -> DatasetDict:
-    """
-    file_path: str
-        Path to the dataset file
-    """
-    with open(file_path, "r") as f:
-        data = json.load(f)
-
-    dataset = DatasetDict({
-        "training": Dataset.from_list(data["training"]),
-        "validation": Dataset.from_list(data["validation"]),
-    })
-
-    return dataset
-
-
-def tokenize(data: DatasetDict) -> DatasetDict:
-    """
-    :param data:
-    :return:
-    """
-    # Tokenize the texts
-    tokenized_inputs = tokenizer(data['text'], padding="max_length", truncation=True, return_tensors="pt")
-    return tokenized_inputs
-
-
-def extract_hidden_states(batch):
-    """
-    :param batch:
-    :return:
-    """
-    inputs = {k: v.to(args.device) for k, v in batch.items() if k in tokenizer.model_input_names}
-    with torch.no_grad():
-        last_hidden_state = model(**inputs).last_hidden_state
-    return {"hidden_state": last_hidden_state[:, 0].cpu().numpy()}
+    def evaluate_all(self):
+        self.dummy_classifier()
+        self.logistic_regression()
+        self.random_forest()
+        self.xgboost()
+        self.support_vector_machine()
+        self.k_nearest_neighbors()
+        self.neural_network()
 
 
 def visualize_dataset_features(dataset: DatasetDict):
@@ -147,45 +117,17 @@ def visualize_dataset_features(dataset: DatasetDict):
     plt.show()
 
 
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--model_name", type=str, default="microsoft/deberta-base-mnli")
-    parser.add_argument("--dataset_path", type=str, default="../dataset/dataset_full.json")
-    parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu", "mps"])
-    parser.add_argument("--gpu_batch_size", type=int, default=30)
+def read_dataset(file_path: str) -> DatasetDict:
+    """
+    file_path: str
+        Path to the dataset file
+    """
+    with open(file_path, "r") as f:
+        data = json.load(f)
 
-    args = parser.parse_args()
-
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-    model = AutoModel.from_pretrained(args.model_name).to(args.device)
-
-    # Load dataset
-    dataset = read_dataset(args.dataset_path)
-    training_dataset = dataset["training"].shuffle(seed=42)
-    validation_dataset = dataset["validation"].shuffle()
-    print(f"Training dataset count: {len(training_dataset)}")
-    print(f"Validation dataset count: {len(validation_dataset)}")
     dataset = DatasetDict({
-        "training": training_dataset,
-        "validation": validation_dataset,
+        "training": Dataset.from_list(data["training"]),
+        "validation": Dataset.from_list(data["validation"]),
     })
 
-    # Tokenize the texts
-    dataset = dataset.map(tokenize, batched=True, batch_size=50)
-    # Convert some columns to torch tensors
-    dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
-    # Extract hidden states
-    dataset = dataset.map(extract_hidden_states, batched=True, batch_size=args.gpu_batch_size)
-
-    # Visualize the dataset features
-    visualize_dataset_features(dataset)
-
-    # Train simple classifiers and evaluate them
-    classifiers = SimpleClassifiers(dataset)
-    classifiers.dummy_classifier()
-    classifiers.logistic_regression()
-    classifiers.random_forest()
-    classifiers.xgboost()
-    classifiers.support_vector_machine()
-    classifiers.k_nearest_neighbors()
-    classifiers.neural_network()
+    return dataset

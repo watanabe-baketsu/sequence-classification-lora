@@ -1,8 +1,7 @@
 from argparse import ArgumentParser
 from typing import Dict
-import json
 
-from datasets import Dataset, DatasetDict
+from datasets import DatasetDict
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -15,21 +14,7 @@ import evaluate
 import torch
 import numpy as np
 
-
-def read_dataset(file_path: str) -> DatasetDict:
-    """
-    file_path: str
-        Path to the dataset file
-    """
-    with open(file_path, "r") as f:
-        data = json.load(f)
-
-    dataset = DatasetDict({
-        "training": Dataset.from_list(data["training"]),
-        "validation": Dataset.from_list(data["validation"]),
-    })
-
-    return dataset
+from utils_and_classifiers import read_dataset
 
 
 def tokenize(data: DatasetDict) -> DatasetDict:
