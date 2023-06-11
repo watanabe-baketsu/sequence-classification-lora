@@ -2,19 +2,19 @@ from argparse import ArgumentParser
 
 import torch
 from datasets import DatasetDict
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoProcessor
 
 from utils_and_classifiers import SimpleClassifiers, visualize_dataset_features, read_dataset
 
 
-def tokenize(data: DatasetDict) -> DatasetDict:
+def encode(data: DatasetDict) -> DatasetDict:
     """
     :param data:
     :return:
     """
-    # Tokenize the texts
-    tokenized_inputs = tokenizer(data['text'], padding="max_length", max_length=50, truncation=True, return_tensors="pt")
-    return tokenized_inputs
+    # encode the texts
+    encoding = processor(data['text'], padding="max_length", max_length=512, truncation=True, return_tensors="pt")
+    return encoding
 
 
 def extract_hidden_states(batch):
@@ -22,24 +22,23 @@ def extract_hidden_states(batch):
     :param batch:
     :return:
     """
-    inputs = {k: v.to(args.device) for k, v in batch.items() if k in tokenizer.model_input_names and k != "attention_mask"}
+    inputs = {k: v.to(args.device) for k, v in batch.items() if k in processor.model_input_names}
     with torch.no_grad():
         last_hidden_state = model(**inputs).last_hidden_state
     return {"hidden_state": last_hidden_state[:, 0].cpu().numpy()}
 
 
+
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--model_name", type=str, default="RWKV/rwkv-4-430m-pile")
+    parser.add_argument("--model_name", type=str, default="microsoft/markuplm-base")
     parser.add_argument("--dataset_path", type=str, default="../dataset/dataset_full.json")
     parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu", "mps"])
     parser.add_argument("--gpu_batch_size", type=int, default=30)
 
     args = parser.parse_args()
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-    tokenizer.pad_token = tokenizer.eos_token
-
+    processor = AutoProcessor.from_pretrained(args.model_name)
     model = AutoModel.from_pretrained(args.model_name).to(args.device)
 
     # Load dataset
@@ -53,8 +52,8 @@ if __name__ == "__main__":
         "validation": validation_dataset,
     })
 
-    # Tokenize the texts
-    dataset = dataset.map(tokenize, batched=True, batch_size=50)
+    # Encode the texts
+    dataset = dataset.map(encode, batched=True, batch_size=50)
     # Convert some columns to torch tensors
     dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
     # Extract hidden states

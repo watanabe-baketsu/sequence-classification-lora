@@ -13,7 +13,7 @@ def tokenize(data: DatasetDict) -> DatasetDict:
     :return:
     """
     # Tokenize the texts
-    tokenized_inputs = tokenizer(data['text'], padding="max_length", truncation=True, return_tensors="pt")
+    tokenized_inputs = tokenizer(data['text'], padding="max_length", max_length=50, truncation=True, return_tensors="pt")
     return tokenized_inputs
 
 
