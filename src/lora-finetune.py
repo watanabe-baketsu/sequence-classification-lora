@@ -65,6 +65,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=4, help="Batch size for training")
     parser.add_argument("--lora_r", type=int, default=4)
     parser.add_argument("--mode", type=str, default="default", choices=["default", "markuplm"])
+    parser.add_argument("--epochs", type=int, default=10, help="Number of epochs for training")
 
     args = parser.parse_args()
 
@@ -122,7 +123,7 @@ if __name__ == "__main__":
         learning_rate=2e-5,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
-        num_train_epochs=10,
+        num_train_epochs=args.epochs,
         evaluation_strategy="steps",
         eval_steps=3000,
         save_strategy="steps",
