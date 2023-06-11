@@ -5,6 +5,7 @@ from datasets import DatasetDict
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
+    AutoProcessor,
     DataCollatorWithPadding,
     Trainer,
     TrainingArguments,
@@ -15,6 +16,16 @@ import torch
 import numpy as np
 
 from utils_and_classifiers import read_dataset
+
+
+def encode(data: DatasetDict) -> DatasetDict:
+    """
+    :param data:
+    :return:
+    """
+    # encode the texts
+    encoding = processor(data['text'], padding=True, truncation=True, return_tensors="pt")
+    return encoding
 
 
 def tokenize(data: DatasetDict) -> DatasetDict:
@@ -53,10 +64,9 @@ if __name__ == "__main__":
     parser.add_argument("--target_modules", nargs='+', default=["in_proj"])
     parser.add_argument("--batch_size", type=int, default=4, help="Batch size for training")
     parser.add_argument("--lora_r", type=int, default=4)
+    parser.add_argument("--mode", type=str, default="default", choices=["default", "markuplm"])
 
     args = parser.parse_args()
-
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
     # Load dataset
     htmls = read_dataset(args.dataset_path)
@@ -68,7 +78,15 @@ if __name__ == "__main__":
         "training": training_dataset,
         "validation": validation_dataset,
     })
-    tokenized_dataset = htmls.map(tokenize, batched=True, remove_columns=["text"])
+
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    if args.mode == "markuplm":
+        processor = AutoProcessor.from_pretrained(args.model_name)
+        tokenized_dataset = htmls.map(encode, batched=True, remove_columns=["text"])
+    elif args.mode == "default":
+        tokenized_dataset = htmls.map(tokenize, batched=True, remove_columns=["text"])
+    else:
+        raise ValueError("Invalid mode")
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 

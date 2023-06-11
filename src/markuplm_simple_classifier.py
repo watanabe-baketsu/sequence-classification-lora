@@ -13,7 +13,7 @@ def encode(data: DatasetDict) -> DatasetDict:
     :return:
     """
     # encode the texts
-    encoding = processor(data['text'], padding="max_length", max_length=512, truncation=True, return_tensors="pt")
+    encoding = processor(data['text'], padding=True, truncation=True, return_tensors="pt")
     return encoding
 
 

@@ -22,7 +22,7 @@ class SimpleClassifiers:
         clf = DummyClassifier(strategy="most_frequent")
         clf.fit(self.X_valid, self.y_valid)
         y_pred = clf.predict(self.X_valid)
-        print(">> Dummy Classifier Report <<")
+        print("#### Dummy Classifier Report")
         print(classification_report(self.y_valid, y_pred))
 
     def logistic_regression(self):
@@ -31,7 +31,7 @@ class SimpleClassifiers:
         clf = LogisticRegression(random_state=0, max_iter=3000)
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
-        print(">> Logistic Regression Report <<")
+        print("#### Logistic Regression Report")
         print(classification_report(self.y_valid, y_pred))
 
     def random_forest(self):
@@ -40,7 +40,7 @@ class SimpleClassifiers:
         clf = RandomForestClassifier(random_state=0)
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
-        print(">> Random Forest Report <<")
+        print("#### Random Forest Report")
         print(classification_report(self.y_valid, y_pred))
 
     def xgboost(self):
@@ -49,7 +49,7 @@ class SimpleClassifiers:
         clf = XGBClassifier(random_state=0)
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
-        print(">> XGBoost Report <<")
+        print("#### XGBoost Report")
         print(classification_report(self.y_valid, y_pred))
 
     def support_vector_machine(self):
@@ -58,7 +58,7 @@ class SimpleClassifiers:
         clf = SVC(random_state=0)
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
-        print(">> Support Vector Machine Report <<")
+        print("#### Support Vector Machine Report")
         print(classification_report(self.y_valid, y_pred))
 
     def k_nearest_neighbors(self):
@@ -67,7 +67,7 @@ class SimpleClassifiers:
         clf = KNeighborsClassifier()
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
-        print(">> K Nearest Neighbors Report <<")
+        print("#### K Nearest Neighbors Report")
         print(classification_report(self.y_valid, y_pred))
 
     def neural_network(self):
@@ -76,7 +76,7 @@ class SimpleClassifiers:
         clf = MLPClassifier(random_state=0, max_iter=3000)
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
-        print(">> Neural Network Report <<")
+        print("#### Neural Network Report")
         print(classification_report(self.y_valid, y_pred))
 
     def evaluate_all(self):
