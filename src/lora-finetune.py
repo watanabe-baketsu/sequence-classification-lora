@@ -15,7 +15,7 @@ import evaluate
 import torch
 import numpy as np
 
-from utils_and_classifiers import read_dataset
+from utils_and_classifiers import read_dataset, create_report
 
 
 def encode(data: DatasetDict) -> DatasetDict:
@@ -43,17 +43,6 @@ def compute_metrics(p) -> Dict[str, float]:
     predictions = np.argmax(logits, axis=-1)
 
     return accuracy.compute(predictions=predictions, references=labels)
-
-
-def create_report(dataset: DatasetDict, trainer: Trainer):
-    from sklearn.metrics import classification_report
-
-    # Get the predictions
-    preds_output = trainer.predict(dataset["validation"])
-    predictions = np.argmax(preds_output.predictions, axis=1)
-
-    print(">> Classification Report <<")
-    print(classification_report(dataset["validation"]["label"], predictions))
 
 
 if __name__ == "__main__":
@@ -124,13 +113,13 @@ if __name__ == "__main__":
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
         num_train_epochs=args.epochs,
-        evaluation_strategy="steps",
-        eval_steps=3000,
-        save_strategy="steps",
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
         lr_scheduler_type="cosine",
     )
 
     accuracy = evaluate.load("accuracy")
+
     trainer = Trainer(
         model=model,
         args=training_args,

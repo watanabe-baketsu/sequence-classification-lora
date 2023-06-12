@@ -1,10 +1,12 @@
 import json
 
+import evaluate
 import numpy as np
 import pandas as pd
 from datasets import Dataset, DatasetDict
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import MinMaxScaler
+from transformers import Trainer
 from matplotlib import pyplot as plt
 from umap import UMAP
 
@@ -131,3 +133,24 @@ def read_dataset(file_path: str) -> DatasetDict:
     })
 
     return dataset
+
+
+def create_report(dataset: DatasetDict, trainer: Trainer):
+    from sklearn.metrics import classification_report
+
+    # Get the predictions
+    preds_output = trainer.predict(dataset["validation"])
+    predictions = np.argmax(preds_output.predictions, axis=1)
+
+    accuracy = evaluate.load("accuracy")
+    recall = evaluate.load("recall")
+    precision = evaluate.load("precision")
+    f1 = evaluate.load("f1")
+
+    print(accuracy.compute(predictions=predictions, references=dataset["validation"]["label"]))
+    print(recall.compute(predictions=predictions, references=dataset["validation"]["label"]))
+    print(precision.compute(predictions=predictions, references=dataset["validation"]["label"]))
+    print(f1.compute(predictions=predictions, references=dataset["validation"]["label"]))
+
+    print(">> Classification Report <<")
+    print(classification_report(dataset["validation"]["label"], predictions, target_names=["not-phish", "phish"]))
