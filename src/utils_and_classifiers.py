@@ -17,6 +17,17 @@ class SimpleClassifiers:
         self.y_train = np.array(dataset["training"]["label"])
         self.X_valid = np.array(dataset["validation"]["hidden_state"])
         self.y_valid = np.array(dataset["validation"]["label"])
+        # Load the evaluation metrics
+        self.accuracy = evaluate.load("accuracy")
+        self.recall = evaluate.load("recall")
+        self.precision = evaluate.load("precision")
+        self.f1 = evaluate.load("f1")
+
+    def detailed_report(self, labels, preds):
+        print(self.accuracy.compute(predictions=preds, references=labels))
+        print(self.recall.compute(predictions=preds, references=labels))
+        print(self.precision.compute(predictions=preds, references=labels))
+        print(self.f1.compute(predictions=preds, references=labels))
 
     def dummy_classifier(self):  # baseline
         from sklearn.dummy import DummyClassifier
@@ -35,6 +46,7 @@ class SimpleClassifiers:
         y_pred = clf.predict(self.X_valid)
         print("#### Logistic Regression Report")
         print(classification_report(self.y_valid, y_pred))
+        self.detailed_report(self.y_valid, y_pred)
 
     def random_forest(self):
         from sklearn.ensemble import RandomForestClassifier
@@ -44,6 +56,7 @@ class SimpleClassifiers:
         y_pred = clf.predict(self.X_valid)
         print("#### Random Forest Report")
         print(classification_report(self.y_valid, y_pred))
+        self.detailed_report(self.y_valid, y_pred)
 
     def xgboost(self):
         from xgboost import XGBClassifier
@@ -53,6 +66,7 @@ class SimpleClassifiers:
         y_pred = clf.predict(self.X_valid)
         print("#### XGBoost Report")
         print(classification_report(self.y_valid, y_pred))
+        self.detailed_report(self.y_valid, y_pred)
 
     def support_vector_machine(self):
         from sklearn.svm import SVC
@@ -62,6 +76,7 @@ class SimpleClassifiers:
         y_pred = clf.predict(self.X_valid)
         print("#### Support Vector Machine Report")
         print(classification_report(self.y_valid, y_pred))
+        self.detailed_report(self.y_valid, y_pred)
 
     def k_nearest_neighbors(self):
         from sklearn.neighbors import KNeighborsClassifier
@@ -71,6 +86,7 @@ class SimpleClassifiers:
         y_pred = clf.predict(self.X_valid)
         print("#### K Nearest Neighbors Report")
         print(classification_report(self.y_valid, y_pred))
+        self.detailed_report(self.y_valid, y_pred)
 
     def neural_network(self):
         from sklearn.neural_network import MLPClassifier
@@ -80,6 +96,7 @@ class SimpleClassifiers:
         y_pred = clf.predict(self.X_valid)
         print("#### Neural Network Report")
         print(classification_report(self.y_valid, y_pred))
+        self.detailed_report(self.y_valid, y_pred)
 
     def evaluate_all(self):
         self.dummy_classifier()
