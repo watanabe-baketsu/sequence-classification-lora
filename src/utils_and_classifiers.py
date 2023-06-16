@@ -147,6 +147,7 @@ def read_dataset(file_path: str) -> DatasetDict:
     dataset = DatasetDict({
         "training": Dataset.from_list(data["training"]),
         "validation": Dataset.from_list(data["validation"]),
+        "testing": Dataset.from_list(data["testing"])
     })
 
     return dataset
@@ -156,7 +157,7 @@ def create_report(dataset: DatasetDict, trainer: Trainer):
     from sklearn.metrics import classification_report
 
     # Get the predictions
-    preds_output = trainer.predict(dataset["validation"])
+    preds_output = trainer.predict(dataset["testing"])
     predictions = np.argmax(preds_output.predictions, axis=1)
 
     accuracy = evaluate.load("accuracy")
@@ -164,10 +165,10 @@ def create_report(dataset: DatasetDict, trainer: Trainer):
     precision = evaluate.load("precision")
     f1 = evaluate.load("f1")
 
-    print(accuracy.compute(predictions=predictions, references=dataset["validation"]["label"]))
-    print(recall.compute(predictions=predictions, references=dataset["validation"]["label"]))
-    print(precision.compute(predictions=predictions, references=dataset["validation"]["label"]))
-    print(f1.compute(predictions=predictions, references=dataset["validation"]["label"]))
+    print(accuracy.compute(predictions=predictions, references=dataset["testing"]["label"]))
+    print(recall.compute(predictions=predictions, references=dataset["testing"]["label"]))
+    print(precision.compute(predictions=predictions, references=dataset["testing"]["label"]))
+    print(f1.compute(predictions=predictions, references=dataset["testing"]["label"]))
 
     print(">> Classification Report <<")
-    print(classification_report(dataset["validation"]["label"], predictions, target_names=["not-phish", "phish"]))
+    print(classification_report(dataset["testing"]["label"], predictions, target_names=["not-phish", "phish"]))

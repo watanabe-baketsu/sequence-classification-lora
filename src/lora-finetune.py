@@ -62,11 +62,13 @@ if __name__ == "__main__":
     htmls = read_dataset(args.dataset_path)
     training_dataset = htmls["training"].shuffle()
     validation_dataset = htmls["validation"].shuffle()
+    testing_dataset = htmls["testing"].shuffle()
     print(f"Training dataset count: {len(training_dataset)}")
     print(f"Validation dataset count: {len(validation_dataset)}")
     htmls = DatasetDict({
         "training": training_dataset,
         "validation": validation_dataset,
+        "testing": testing_dataset,
     })
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)

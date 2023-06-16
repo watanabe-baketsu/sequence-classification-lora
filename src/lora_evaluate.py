@@ -18,7 +18,7 @@ def read_validation_dataset(file_path: str) -> DatasetDict:
         data = json.load(f)
 
     dataset = DatasetDict({
-        "validation": Dataset.from_list(data["validation"]),
+        "testing": Dataset.from_list(data["testing"]),
     })
 
     return dataset

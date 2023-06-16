@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 import torch
-from datasets import DatasetDict
+from datasets import Dataset, DatasetDict
 from transformers import AutoModel, AutoProcessor
 
 from utils_and_classifiers import SimpleClassifiers, visualize_dataset_features, read_dataset
@@ -45,11 +45,17 @@ if __name__ == "__main__":
     dataset = read_dataset(args.dataset_path)
     training_dataset = dataset["training"].shuffle(seed=42)
     validation_dataset = dataset["validation"].shuffle()
+    testing_dataset = dataset["testing"].shuffle()
     print(f"Training dataset count: {len(training_dataset)}")
     print(f"Validation dataset count: {len(validation_dataset)}")
+    print(f"Testing dataset count: {len(testing_dataset)}")
+    valid_test_dataset = Dataset.from_list(
+        Dataset.to_list(validation_dataset) + Dataset.to_list(testing_dataset)
+    )
+    print(f"Validation + Testing dataset count: {len(valid_test_dataset)}")
     dataset = DatasetDict({
         "training": training_dataset,
-        "validation": validation_dataset,
+        "validation": valid_test_dataset,
     })
 
     # Encode the texts
