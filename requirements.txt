@@ -1,4 +1,5 @@
 peft~=0.3.0
+beautifulsoup4~=4.12.2
 transformers~=4.29.2
 torchtext~=0.15.2
 datasets~=2.12.0
@@ -9,3 +10,4 @@ scikit-learn~=1.2.2
 numpy~=1.24.3
 pandas~=2.0.2
 requests~=2.31.0
+umap-learn~=0.5.3

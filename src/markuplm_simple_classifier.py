@@ -28,7 +28,6 @@ def extract_hidden_states(batch):
     return {"hidden_state": last_hidden_state[:, 0].cpu().numpy()}
 
 
-
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--model_name", type=str, default="microsoft/markuplm-base")
