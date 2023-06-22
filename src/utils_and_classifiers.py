@@ -3,6 +3,8 @@ import json
 import evaluate
 import numpy as np
 import pandas as pd
+import torch
+from torch import nn
 from datasets import Dataset, DatasetDict
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import MinMaxScaler
@@ -88,16 +90,6 @@ class SimpleClassifiers:
         print(classification_report(self.y_valid, y_pred))
         self.detailed_report(self.y_valid, y_pred)
 
-    def neural_network(self):
-        from sklearn.neural_network import MLPClassifier
-
-        clf = MLPClassifier(random_state=0, max_iter=3000)
-        clf.fit(self.X_train, self.y_train)
-        y_pred = clf.predict(self.X_valid)
-        print("#### Neural Network Report")
-        print(classification_report(self.y_valid, y_pred))
-        self.detailed_report(self.y_valid, y_pred)
-
     def evaluate_all(self):
         self.dummy_classifier()
         self.logistic_regression()
@@ -105,7 +97,40 @@ class SimpleClassifiers:
         self.xgboost()
         self.support_vector_machine()
         self.k_nearest_neighbors()
-        self.neural_network()
+
+
+class NeuralNetwork(nn.Module):
+    def __init__(self, input_size):
+        super(NeuralNetwork, self).__init__()
+        self.fc1 = nn.Linear(input_size, 512)
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, 128)
+        self.fc4 = nn.Linear(128, 64)
+        self.fc5 = nn.Linear(64, 1)
+
+        self.dropout = nn.Dropout(0.3)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = torch.relu(x)
+        x = self.dropout(x)
+
+        x = self.fc2(x)
+        x = torch.relu(x)
+        x = self.dropout(x)
+
+        x = self.fc3(x)
+        x = torch.relu(x)
+        x = self.dropout(x)
+
+        x = self.fc4(x)
+        x = torch.relu(x)
+        x = self.dropout(x)
+
+        x = self.fc5(x)
+        output = torch.sigmoid(x)
+
+        return output
 
 
 def visualize_dataset_features(dataset: DatasetDict):
