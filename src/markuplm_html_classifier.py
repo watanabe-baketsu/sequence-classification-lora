@@ -2,13 +2,14 @@ from argparse import ArgumentParser
 import copy
 
 import torch
-from datasets import Dataset, DatasetDict
+from datasets import DatasetDict
 from sklearn.metrics import classification_report, accuracy_score
 from transformers import AutoModel, AutoProcessor
 from torch.utils.data import DataLoader, TensorDataset
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
-from utils_and_classifiers import SimpleClassifiers, visualize_dataset_features, read_dataset, NeuralNetwork
+from classifiers import SimpleClassifiers, NeuralNetwork
+from utils import read_dataset, detailed_report
 
 
 def encode(data: DatasetDict) -> DatasetDict:
@@ -69,7 +70,7 @@ def evaluate(nn_model: NeuralNetwork, mode: str = "epoch"):
         print(f'Testing Loss: {test_loss / len(test_loader)}')
         print("#### NeuralNetwork")
         print(classification_report(all_labels, all_predictions))
-        classifiers.detailed_report(all_labels, all_predictions)
+        detailed_report(all_labels, all_predictions)
 
 
 if __name__ == "__main__":
@@ -104,9 +105,6 @@ if __name__ == "__main__":
     dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
     # Extract hidden states
     dataset = dataset.map(extract_hidden_states, batched=True, batch_size=args.gpu_batch_size)
-
-    # Visualize the dataset features
-    # visualize_dataset_features(dataset)
 
     # Train simple classifiers and evaluate them
     classifiers = SimpleClassifiers(dataset)
