@@ -9,8 +9,6 @@ from transformers import AutoModel, AutoTokenizer, AutoProcessor
 from torch.utils.data import DataLoader, TensorDataset
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
-from utils import detailed_report
-
 
 class SimpleClassifiers:
     def __init__(self, dataset: DatasetDict):
@@ -26,7 +24,7 @@ class SimpleClassifiers:
         clf.fit(self.X_valid, self.y_valid)
         y_pred = clf.predict(self.X_valid)
         print("#### Dummy Classifier Report")
-        print(classification_report(self.y_valid, y_pred))
+        print(classification_report(self.y_valid, y_pred, digits=6))
 
     def logistic_regression(self):
         from sklearn.linear_model import LogisticRegression
@@ -35,8 +33,7 @@ class SimpleClassifiers:
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
         print("#### Logistic Regression Report")
-        print(classification_report(self.y_valid, y_pred))
-        detailed_report(self.y_valid, y_pred)
+        print(classification_report(self.y_valid, y_pred, digits=6))
 
     def random_forest(self):
         from sklearn.ensemble import RandomForestClassifier
@@ -45,8 +42,7 @@ class SimpleClassifiers:
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
         print("#### Random Forest Report")
-        print(classification_report(self.y_valid, y_pred))
-        detailed_report(self.y_valid, y_pred)
+        print(classification_report(self.y_valid, y_pred, digits=6))
 
     def xgboost(self):
         from xgboost import XGBClassifier
@@ -55,8 +51,7 @@ class SimpleClassifiers:
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
         print("#### XGBoost Report")
-        print(classification_report(self.y_valid, y_pred))
-        detailed_report(self.y_valid, y_pred)
+        print(classification_report(self.y_valid, y_pred, digits=6))
 
     def support_vector_machine(self):
         from sklearn.svm import SVC
@@ -65,8 +60,7 @@ class SimpleClassifiers:
         clf.fit(self.X_train, self.y_train)
         y_pred = clf.predict(self.X_valid)
         print("#### Support Vector Machine Report")
-        print(classification_report(self.y_valid, y_pred))
-        detailed_report(self.y_valid, y_pred)
+        print(classification_report(self.y_valid, y_pred, digits=6))
 
     def k_nearest_neighbors(self):
         from sklearn.neighbors import KNeighborsClassifier
@@ -76,7 +70,6 @@ class SimpleClassifiers:
         y_pred = clf.predict(self.X_valid)
         print("#### K Nearest Neighbors Report")
         print(classification_report(self.y_valid, y_pred))
-        detailed_report(self.y_valid, y_pred)
 
     def evaluate_all(self):
         self.dummy_classifier()
@@ -171,7 +164,7 @@ class NNTrainerUtility:
     def __init__(self, device):
         self.device = device
 
-    def train_nn_model(self, dataset: DatasetDict):
+    def train_nn_model(self, dataset: DatasetDict) -> NeuralNetwork:
         train_hidden_states = dataset["training"]["hidden_state"]
         train_label = torch.tensor(dataset["training"]["label"]).float().view(-1, 1)
         valid_hidden_states = dataset["validation"]["hidden_state"]
@@ -221,6 +214,7 @@ class NNTrainerUtility:
 
         print('Finished Training')
         self.evaluate_nn_model(best_model, test_loader, criterion, mode="last")
+        return best_model
 
     def evaluate_nn_model(self, nn_model: NeuralNetwork, loader: DataLoader, criterion, mode: str) -> float:
         nn_model.eval()
@@ -243,19 +237,19 @@ class NNTrainerUtility:
             return epoch_accuracy
         elif mode == "last":
             print(f'Testing Loss: {tmp_loss / len(loader)}')
-            print("#### Visible Text Classification Report ####")
-            print(classification_report(all_labels, all_predictions))
-            detailed_report(all_labels, all_predictions)
+            print("#### Classification Report ####")
+            print(classification_report(all_labels, all_predictions, digits=6))
 
-    def extract_outputs(self, nn_model: NeuralNetwork, dataset: DatasetDict) -> list:
+    def extract_outputs(self, nn_model: NeuralNetwork, dataset: DatasetDict, mode: str) -> list:
         nn_model.eval()
         all_outputs = []
-        test_hidden_states = dataset["testing"]["hidden_state"]
-        test_dataset = TensorDataset(test_hidden_states)
+
+        hidden_states = dataset[mode]["hidden_state"]
+        dataset = TensorDataset(hidden_states)
         batch_size = 32
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
         with torch.no_grad():
-            for i, data in enumerate(test_loader, 0):
+            for i, data in enumerate(loader, 0):
                 inputs = data[0].to(self.device)
                 outputs = nn_model(inputs)
                 all_outputs.extend(outputs.cpu().numpy())

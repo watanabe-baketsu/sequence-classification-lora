@@ -1,6 +1,5 @@
 import json
 
-import evaluate
 import numpy as np
 import pandas as pd
 from datasets import Dataset, DatasetDict
@@ -61,27 +60,6 @@ def create_report(dataset: DatasetDict, trainer: Trainer):
     preds_output = trainer.predict(dataset["testing"])
     predictions = np.argmax(preds_output.predictions, axis=1)
 
-    accuracy = evaluate.load("accuracy")
-    recall = evaluate.load("recall")
-    precision = evaluate.load("precision")
-    f1 = evaluate.load("f1")
-
-    print(accuracy.compute(predictions=predictions, references=dataset["testing"]["label"]))
-    print(recall.compute(predictions=predictions, references=dataset["testing"]["label"]))
-    print(precision.compute(predictions=predictions, references=dataset["testing"]["label"]))
-    print(f1.compute(predictions=predictions, references=dataset["testing"]["label"]))
-
     print(">> Classification Report <<")
-    print(classification_report(dataset["testing"]["label"], predictions, target_names=["not-phish", "phish"]))
+    print(classification_report(dataset["testing"]["label"], predictions, target_names=["not-phish", "phish"], digits=6))
 
-
-def detailed_report(labels, preds):
-    # Load the evaluation metrics
-    accuracy = evaluate.load("accuracy")
-    recall = evaluate.load("recall")
-    precision = evaluate.load("precision")
-    f1 = evaluate.load("f1")
-    print(accuracy.compute(predictions=preds, references=labels))
-    print(recall.compute(predictions=preds, references=labels))
-    print(precision.compute(predictions=preds, references=labels))
-    print(f1.compute(predictions=preds, references=labels))
