@@ -1,19 +1,29 @@
 from argparse import ArgumentParser
 
 import numpy as np
-from datasets import Dataset, DatasetDict
+from datasets import DatasetDict
 from sklearn.metrics import classification_report
 
 from classifiers import TransformerBody, MarkupLMBody, NNTrainerUtility
 from utils import read_dataset
 
 
-def last_nn(text_preds: list, markup_preds: list, labels: list):
+def nn_head(text_preds: list, markup_preds: list, labels: list):
     from sklearn.neural_network import MLPClassifier
     inputs = [[t[0], m[0]] for t, m in zip(text_preds, markup_preds)]
     x = np.array(inputs)
     y = np.array(labels)
-    clf = MLPClassifier(random_state=0, max_iter=1000)
+    clf = MLPClassifier(random_state=0, max_iter=1000, early_stopping=True)
+    clf.fit(x, y)
+    return clf
+
+
+def xgb_head(text_preds: list, markup_preds:list, labels: list):
+    from xgboost import XGBClassifier
+    inputs = [[t[0], m[0]] for t, m in zip(text_preds, markup_preds)]
+    x = np.array(inputs)
+    y = np.array(labels)
+    clf = XGBClassifier(random_state=0, max_iter=1000)
     clf.fit(x, y)
     return clf
 
@@ -64,7 +74,8 @@ if __name__ == "__main__":
     # Train last neural network
     text_outputs_train = trainer.extract_outputs(text_nn_model, text_dataset, "training")
     markup_outputs_train = trainer.extract_outputs(markup_nn_model, markup_dataset, "training")
-    last_nn_model = last_nn(text_outputs_train, markup_outputs_train, dataset["training"]["label"])
+    last_nn_model = nn_head(text_outputs_train, markup_outputs_train, dataset["training"]["label"])
+    last_xgb_model = xgb_head(text_outputs_train, markup_outputs_train, dataset["training"]["label"])
 
     # Test the combination of classifiers
     text_outputs_test = trainer.extract_outputs(text_nn_model, text_dataset, "testing")
@@ -73,7 +84,12 @@ if __name__ == "__main__":
     x = np.array(inputs)
     final_outputs = last_nn_model.predict(x)
 
-    # Calculate the metrics
+    # Calculate the metrics NN
     labels = dataset["testing"]["label"]
-    print("Combination Classification Report")
+    print("Combination Classification Report(NN)")
+    print(classification_report(labels, final_outputs, digits=6))
+
+    # Calculate the metrics XGB
+    final_outputs = last_xgb_model.predict(x)
+    print("Combination Classification Report(XGB)")
     print(classification_report(labels, final_outputs, digits=6))
